@@ -53,6 +53,12 @@ On first installation, the application will start in wifi AP mode - connect to S
 
 Subsequent updates to the application, or to the **/data** folder files, can be made using the **OTA Upload** tab. The **/data** folder can also be reloaded from GitHub using the **Reload /data** button on the **Edit Config** tab, or by using a WebDAV client.
 
+### Optional protected SoftAP
+
+This fork can expose a separate protected Wi-Fi network whose clients use the ESP32 as IPv4 gateway and DNS server, with Internet forwarding through NAPT. See [PROTECTED_AP.md](PROTECTED_AP.md) for setup.
+
+A fresh clone compiles without a local password file. To enable the protected SoftAP, copy `natSecrets.example.h` to `natSecrets.h`, set a private password, and optionally customize the protected SSID. `natSecrets.h` is ignored by Git.
+
 ## Configuration
 
 More configuration details accessed via **Edit Config** tab, which displays further buttons:

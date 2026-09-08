@@ -20,6 +20,8 @@
 void setup() { 
   utilsStartup();
   if (startNetwork()) {
+    // Experimental protected SoftAP with NAPT
+    startProtectedNatAP();
     // start rest of services
     appSetup();
     checkMemory();

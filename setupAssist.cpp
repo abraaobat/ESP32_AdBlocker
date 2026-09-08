@@ -253,9 +253,9 @@ function hideDropdown(event){
 
 function Config(){
   if(!window.confirm('This will reboot the device to activate new settings.'))return false;
-  fetch('/control?ST_SSID='+encodeURI(document.getElementById('ST_SSID').value)).then(r=>{
+  fetch('/control?ST_SSID='+encodeURIComponent(document.getElementById('ST_SSID').value)).then(r=>{
     console.log(r);
-    return fetch('/control?ST_Pass='+encodeURI(document.getElementById('ST_Pass').value))}).then(r=>{console.log(r);
+    return fetch('/control?ST_Pass='+encodeURIComponent(document.getElementById('ST_Pass').value))}).then(r=>{console.log(r);
     return fetch('/control?save=1')}).then(r=>{console.log(r);
     return fetch('/control?reset=1')}).then(r=>{console.log(r);
   });
