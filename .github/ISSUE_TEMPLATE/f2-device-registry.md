@@ -1,6 +1,6 @@
 ---
 name: F2 Device Registry
-a bout: Track work for connected-client identification and registry
+about: Track work for connected-client identification and registry
 title: "F2.x — Device Registry: "
 labels: ""
 assignees: ""
