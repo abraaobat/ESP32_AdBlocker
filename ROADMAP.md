@@ -2,7 +2,7 @@
 
 This roadmap defines the path for this fork to evolve from a DNS sinkhole with an optional protected SoftAP into a small **privacy and network-policy gateway powered by ESP32**.
 
-The project remains derived from [`s60sc/ESP32_AdBlocker`](https://github.com/s60sc/ESP32_AdBlocker) and keeps the upstream DNS sinkhole as its foundation. The fork's independent direction is centered on two deployment modes, client awareness, per-device policies, observability and appliance-like setup.
+The project remains derived from [`s60sc/ESP32_AdBlocker`](https://github.com/s60sc/ESP32_AdBlocker) and keeps the upstream DNS sinkhole as its foundation. The fork's independent direction is centered on two deployment modes, client awareness, per-device policies, observability, appliance-like setup and a portable **Travel Security** use case for untrusted/public Wi-Fi.
 
 ## Product direction
 
@@ -10,6 +10,8 @@ The project remains derived from [`s60sc/ESP32_AdBlocker`](https://github.com/s6
 
 1. **Router DNS mode** — the existing router provides DHCP and gateway; the ESP32 provides DNS filtering.
 2. **ESP32 Gateway mode** — the ESP32 protected SoftAP provides DHCP + DNS + IPv4 gateway + NAPT over an upstream Wi-Fi connection.
+
+**Travel Security / Public Wi-Fi** is a first-class use case of ESP32 Gateway mode, not a third network mode. The objective is to let the user keep a stable private SSID for personal devices while the ESP32 changes upstream networks and applies conservative DNS/network-isolation policies.
 
 The long-term differentiator is not simply a larger blocklist. It is a lightweight **Policy Engine** that can answer:
 
@@ -69,6 +71,8 @@ Deliverables:
 - current mode visible on status page
 - safe transition logic between modes
 - warning against running two DHCP servers on the same LAN
+- upstream Wi-Fi scan/connect flow suitable for home and travel use
+- hooks for captive-portal state detection without attempting to bypass authentication or terms
 
 **Exit criteria:** a new user can install and choose either supported mode without editing `.h` files.
 
@@ -200,6 +204,7 @@ Deliverables:
 - one-tap profile switch
 - configurable expiry for temporary overrides
 - correct behavior across reboot/time-sync failure
+- one-tap `Travel Security` preset when the required gateway controls are available
 
 Example:
 
@@ -231,6 +236,8 @@ Dashboard targets:
 - per-device recent summary
 - NAPT/uplink recovery events
 - memory/heap/PSRAM health
+- current upstream SSID/trust context for travel use
+- captive-portal / limited-connectivity state where reliably detectable
 
 Architecture rule: use bounded counters/ring buffers and avoid unbounded query logs.
 
@@ -272,6 +279,80 @@ Research/deliverables:
 - clear privacy model and limitations
 
 **Exit criteria:** publish a tested, explicit DNS/IPv6 threat model and implement only features that are stable within ESP32 resource limits.
+
+---
+
+## F8.5 — Travel Security + Public Wi-Fi 🔬
+
+**Goal:** make Gateway mode useful as a portable privacy/filtering layer on hotel, café, airport, guest and other untrusted/semi-trusted Wi-Fi networks.
+
+Target architecture:
+
+```text
+Public / hotel / café Wi-Fi
+          |
+          v
+   ESP32 AdBlock Gateway
+   - protected SoftAP
+   - DHCP + DNS
+   - IPv4 NAPT
+   - policy controls
+          |
+          v
+ phone / tablet / laptop
+```
+
+Planned baseline controls:
+
+- keep personal devices behind the ESP32 private IPv4 subnet
+- maintain the same protected SSID/password while changing the upstream Wi-Fi
+- no unsolicited inbound forwarding to protected clients by default
+- no automatic port forwards
+- option to ignore DNS supplied by the public hotspot and use configured trusted resolvers
+- integrate categorized DNS security filtering from the Policy Engine
+- captive-portal detection and assisted user flow; never bypass authentication, payment or network terms
+- research local-service leak controls for SMB, NetBIOS, SSDP/UPnP, mDNS and related discovery traffic toward the uplink
+- enable client-to-client isolation only after reliable stack-level validation
+- expose upstream/travel status and limitations in the UI
+- preserve NAPT/default-route recovery when the public uplink changes or reconnects
+- research WireGuard/VPN feasibility separately; no VPN-equivalent security claims without implementation and benchmarks
+
+Suggested future quick preset:
+
+```text
+Travel Security
+- protected private subnet: ON
+- IPv4 NAPT: ON
+- unsolicited inbound forwarding: OFF
+- public-hotspot DNS trust: OFF
+- filtered DNS: ON
+- local-service leak controls: ON where validated
+- client isolation: ON only where validated
+- captive-portal assistance: ON
+```
+
+Validation targets:
+
+- open Wi-Fi uplink
+- WPA2-Personal uplink
+- upstream SSID change/reconnect while protected clients retain their local network configuration
+- captive-portal lab/test network
+- protected-client Internet access through NAPT
+- no unsolicited inbound reachability to protected clients
+- configured DNS path does not silently fall back to hotspot DNS
+- service-leak controls do not destabilize DHCP/DNS/NAPT
+- documented throughput, memory use and failure behavior
+
+Security boundaries:
+
+- Travel Security is defense in depth, not a replacement for HTTPS, endpoint security or a trusted VPN
+- traffic analysis by the hotspot/provider remains possible without a VPN
+- client-controlled DoH/DoT may bypass local DNS policy
+- IPv6 protection must not be claimed until explicitly implemented and validated
+
+See [`docs/TRAVEL_SECURITY.md`](docs/TRAVEL_SECURITY.md) for the detailed threat model and planned controls.
+
+**Exit criteria:** a protected client can move through representative public-Wi-Fi scenarios behind the ESP32 with validated IPv4 isolation, explicit DNS behavior, documented captive-portal handling and no unsupported security claims.
 
 ---
 
@@ -319,6 +400,7 @@ v0.1  Gateway foundation
 v0.2  Mode Selector + Device Registry
 v0.3  Per-device Policy Engine
 v0.4  Dashboard + schedules
+v0.5  Travel Security + public-Wi-Fi hardening
 v1.0  Stable appliance-oriented release
 ```
 
@@ -334,6 +416,8 @@ v1.0  Stable appliance-oriented release
 6. **Secrets stay local.** Never require real Wi-Fi credentials in Git.
 7. **Do not overclaim security.** DNS filtering is not a firewall, endpoint security suite or complete parental-control system.
 8. **Preserve upstream attribution and AGPL-3.0 obligations.**
+9. **Travel Security is defense in depth, not a VPN claim.** Public-Wi-Fi protections must be tied to measured behavior and explicit limitations.
+10. **Never bypass captive-portal access controls.** Assistance may detect and guide normal authentication, but must not circumvent payment, credentials or terms of service.
 
 # Immediate next sprint
 
@@ -351,4 +435,6 @@ F2.1 Connected-client enumeration
    -> F2.7 Profile field placeholder
 ```
 
-See [`docs/POLICY_ENGINE.md`](docs/POLICY_ENGINE.md) for the proposed internal architecture.
+Travel Security should begin only after the necessary F1/F2 networking/configuration foundations are stable, then integrate with F4/F5/F7/F8 rather than becoming a separate parallel stack.
+
+See [`docs/POLICY_ENGINE.md`](docs/POLICY_ENGINE.md) for the proposed internal architecture and [`docs/TRAVEL_SECURITY.md`](docs/TRAVEL_SECURITY.md) for the public-Wi-Fi threat model.
