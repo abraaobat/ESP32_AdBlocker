@@ -16,6 +16,8 @@ IPAddress protectedMask(255, 255, 255, 0);
 IPAddress protectedLeaseStart(192, 168, 4, 10);
 IPAddress protectedDNS(192, 168, 4, 1);
 
+bool protectedNatAPEnabled = false;
+
 }
 
 bool startProtectedNatAP() {
@@ -85,6 +87,41 @@ bool startProtectedNatAP() {
   Serial.printf("[NAT-AP] DNS:     %s\n", protectedDNS.toString().c_str());
   Serial.println("[NAT-AP] NAPT:    ENABLED");
   Serial.println("[NAT-AP] ==================================");
+
+  protectedNatAPEnabled = true;
+
+  return true;
+}
+
+
+bool isProtectedNatAPEnabled() {
+  return protectedNatAPEnabled;
+}
+
+bool recoverProtectedNatAP() {
+
+  if (!protectedNatAPEnabled) {
+    return false;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[NAT-AP] Recovery postponed: upstream STA not connected");
+    return false;
+  }
+
+  Serial.println("[NAT-AP] Recovering protected Internet route...");
+
+  if (!WiFi.STA.setDefault()) {
+    Serial.println("[NAT-AP] ERROR: recovery could not set STA as default route");
+    return false;
+  }
+
+  if (!WiFi.AP.enableNAPT(true)) {
+    Serial.println("[NAT-AP] ERROR: recovery could not enable NAPT");
+    return false;
+  }
+
+  Serial.println("[NAT-AP] Recovery complete: STA default + NAPT enabled");
 
   return true;
 }

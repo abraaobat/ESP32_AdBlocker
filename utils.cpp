@@ -159,7 +159,11 @@ static void onNetEvent(arduino_event_id_t event, arduino_event_info_t info) {
       }
       break;
     }
-    case ARDUINO_EVENT_WIFI_STA_GOT_IP: LOG_INF("Wifi Station IP, use '%s://%s' to connect", useHttps ? "https" : "http", formatIPstr()); break;
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP: {
+      LOG_INF("Wifi Station IP, use '%s://%s' to connect", useHttps ? "https" : "http", formatIPstr());
+      if (isProtectedNatAPEnabled()) recoverProtectedNatAP();
+      break;
+    }
     case ARDUINO_EVENT_WIFI_STA_LOST_IP: LOG_INF("Wifi Station lost IP"); break;
     case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED: break;
     case ARDUINO_EVENT_WIFI_STA_CONNECTED: LOG_INF("WiFi Station connection to %s, using hostname: %s", ST_SSID, hostName); break;
@@ -197,6 +201,11 @@ static void onNetEvent(arduino_event_id_t event, arduino_event_info_t info) {
 }
 
 static void setWifiAP() {
+  if (isProtectedNatAPEnabled()) {
+    LOG_INF("Protected NAT AP active, keeping current AP");
+    return;
+  }
+
   if (!APstarted) {
     delay(100);
     WiFi.AP.begin();

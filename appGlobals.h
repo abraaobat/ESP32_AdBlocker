@@ -114,6 +114,8 @@ bool resolveAAAA(const char* host, uint8_t out[16]); // true + 16-byte address o
 bool appSetup();
 void prepDNS();
 bool startProtectedNatAP();
+bool isProtectedNatAPEnabled();
+bool recoverProtectedNatAP();
 /******************** Added for More Functions *******************/
 /* ---------- AdBlocker DNS result contract ----------
  * Shared between appSpecific.cpp (blocklist decision)
