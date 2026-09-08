@@ -29,3 +29,5 @@ The protected AP starts only after the upstream Wi-Fi station has connected succ
 ## Notes
 
 This path currently provides IPv4 DHCP, DNS and NAPT. IPv6 DNS bypass is outside the scope of this protected-AP implementation and should be validated separately for each client environment.
+
+The protected AP setup is optional. If `natSecrets.h` is absent or still contains the example password, protected-AP startup is refused so the example credential is never exposed as a live Wi-Fi password.
