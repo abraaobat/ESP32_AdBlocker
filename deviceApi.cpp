@@ -5,6 +5,8 @@
 #include "deviceApi.h"
 #include "deviceRegistry.h"
 
+bool checkAuth(httpd_req_t* req);
+
 namespace {
 
 String macToString(const uint8_t mac[6]) {
