@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ESP32 AdBlock Gateway — DNS Ad Blocking & Protected Wi‑Fi Gateway</title>
+  <meta name="description" content="Turn an ESP32-S3 into a low-cost DNS ad blocker and optional protected Wi-Fi gateway for home, family, Smart TV and IoT networks.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0b68ff">
+  <link rel="canonical" href="https://abraaobat.github.io/ESP32_AdBlocker/">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ESP32 AdBlock Gateway">
+  <meta property="og:description" content="DNS-level ad blocking plus an optional protected Wi-Fi gateway powered by ESP32-S3.">
+  <meta property="og:url" content="https://abraaobat.github.io/ESP32_AdBlocker/">
+  <meta property="og:site_name" content="ESP32 AdBlock Gateway">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"SoftwareApplication",
+    "name":"ESP32 AdBlock Gateway",
+    "applicationCategory":"UtilitiesApplication",
+    "operatingSystem":"ESP32-S3",
+    "isAccessibleForFree":true,
+    "license":"https://www.gnu.org/licenses/agpl-3.0.html",
+    "codeRepository":"https://github.com/abraaobat/ESP32_AdBlocker",
+    "downloadUrl":"https://github.com/abraaobat/ESP32_AdBlocker/releases",
+    "description":"Open-source ESP32-S3 DNS ad blocker with optional protected Wi-Fi gateway mode."
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="ESP32 AdBlock Gateway home">
+      <span class="brand-mark" aria-hidden="true">⌁</span>
+      <span><strong>ESP32</strong> <b>AdBlock</b> Gateway</span>
+    </a>
+    <nav class="nav" aria-label="Primary navigation">
+      <a href="#features" data-i18n="navFeatures">Features</a>
+      <a href="#how" data-i18n="navHow">How it works</a>
+      <a href="#install" data-i18n="navInstall">Install</a>
+      <a href="https://github.com/abraaobat/ESP32_AdBlocker" rel="noopener">GitHub</a>
+    </nav>
+    <label class="lang-control" aria-label="Language">
+      <span>🌐</span>
+      <select id="languageSelect">
+        <option value="en">English</option>
+        <option value="pt-BR">Português</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="zh-CN">简体中文</option>
+      </select>
+    </label>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="eyebrow">A CLEANER NETWORK, WITH MORE CONTROL</p>
+        <h1 data-i18n="heroTitle">Turn an ESP32 into a Wi‑Fi network with DNS ad blocking</h1>
+        <p class="hero-lead" data-i18n="heroLead">Block many ad and tracker domains at DNS level, create a protected network for family and IoT devices, and choose between Router DNS mode or ESP32 Gateway mode.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/abraaobat/ESP32_AdBlocker/releases" rel="noopener" data-i18n="downloadFirmware">Download firmware</a>
+          <a class="btn btn-accent" href="https://lista.mercadolivre.com.br/esp32-s3-n16r8" rel="nofollow noopener" data-i18n="buyBoard">Buy ESP32-S3 board</a>
+          <a class="btn btn-ghost" href="#support" data-i18n="supportOne">Support with US$1</a>
+        </div>
+        <p class="microcopy" data-i18n="releaseNote">Firmware and source releases are distributed through GitHub Releases.</p>
+        <div class="trust-row" aria-label="Benefits">
+          <span>🛡️ <b data-i18n="trustPrivacy">More privacy</b></span>
+          <span>👨‍👩‍👧 <b data-i18n="trustFamily">Family-friendly network</b></span>
+          <span>🚫 <b data-i18n="trustAds">Fewer ad domains</b></span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="ESP32 connected between the home network and protected devices">
+        <svg viewBox="0 0 760 540" role="img" aria-labelledby="heroSvgTitle heroSvgDesc">
+          <title id="heroSvgTitle">ESP32 AdBlock Gateway network diagram</title>
+          <desc id="heroSvgDesc">An ESP32-S3 board and home router feeding a phone, laptop and smart TV through a filtered network.</desc>
+          <defs>
+            <linearGradient id="boardGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14243d"/><stop offset="1" stop-color="#243b5f"/></linearGradient>
+            <linearGradient id="routerGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071827"/><stop offset="1" stop-color="#123c5d"/></linearGradient>
+            <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-opacity=".16"/></filter>
+          </defs>
+          <circle cx="650" cy="78" r="60" fill="#e7f7ee"/>
+          <path d="M650 42l35 24v39h-70V66z" fill="#12a36f" opacity=".16"/>
+          <path d="M650 50l28 20v29h-56V70z" fill="#0ea66f"/>
+          <circle cx="638" cy="78" r="7" fill="#fff"/><circle cx="662" cy="78" r="7" fill="#fff"/><path d="M633 96c4-10 30-10 34 0" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <text x="650" y="155" text-anchor="middle" class="svg-label">Protected home</text>
+
+          <g transform="translate(90 75) rotate(-6 130 130)" filter="url(#shadow)">
+            <rect x="0" y="0" width="235" height="300" rx="24" fill="url(#boardGrad)"/>
+            <rect x="48" y="45" width="140" height="105" rx="9" fill="#c9d0d7"/>
+            <text x="118" y="92" text-anchor="middle" font-size="20" fill="#52606d" font-weight="700">ESPRESSIF</text>
+            <text x="118" y="120" text-anchor="middle" font-size="22" fill="#52606d" font-weight="800">ESP32‑S3</text>
+            <rect x="82" y="255" width="72" height="38" rx="8" fill="#d9dee4"/>
+            <rect x="96" y="265" width="44" height="28" fill="#5f6974"/>
+            <g fill="#e5b84a"><circle cx="16" cy="25" r="4"/><circle cx="16" cy="52" r="4"/><circle cx="16" cy="79" r="4"/><circle cx="16" cy="106" r="4"/><circle cx="16" cy="133" r="4"/><circle cx="16" cy="160" r="4"/><circle cx="16" cy="187" r="4"/><circle cx="16" cy="214" r="4"/><circle cx="219" cy="25" r="4"/><circle cx="219" cy="52" r="4"/><circle cx="219" cy="79" r="4"/><circle cx="219" cy="106" r="4"/><circle cx="219" cy="133" r="4"/><circle cx="219" cy="160" r="4"/><circle cx="219" cy="187" r="4"/><circle cx="219" cy="214" r="4"/></g>
+          </g>
+
+          <g transform="translate(390 120)" filter="url(#shadow)">
+            <rect x="0" y="55" width="225" height="92" rx="22" fill="url(#routerGrad)"/>
+            <rect x="26" y="91" width="52" height="5" rx="2" fill="#13aef3"/><circle cx="92" cy="94" r="3" fill="#16d79c"/><circle cx="104" cy="94" r="3" fill="#16d79c"/>
+            <rect x="25" y="0" width="7" height="70" rx="3" fill="#142a3e"/><rect x="108" y="-20" width="7" height="90" rx="3" fill="#142a3e"/><rect x="192" y="5" width="7" height="65" rx="3" fill="#142a3e"/>
+          </g>
+          <path d="M320 230 C350 230 355 225 390 225" stroke="#0b68ff" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M616 230 C680 250 680 335 610 365" stroke="#11aa76" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M510 272 C510 310 500 320 500 360" stroke="#0b68ff" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M410 270 C355 300 310 315 280 365" stroke="#0b68ff" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+          <g transform="translate(210 360)"><rect width="95" height="145" rx="17" fill="#0a1730"/><rect x="8" y="10" width="79" height="120" rx="11" fill="#d8efff"/><path d="M18 100l28-34 18 19 14-15v40H18z" fill="#59a6e8"/><circle cx="47" cy="137" r="4" fill="#61718e"/></g>
+          <g transform="translate(410 365)"><rect x="0" y="0" width="150" height="94" rx="9" fill="#14223a"/><rect x="8" y="8" width="134" height="78" rx="4" fill="#dff3ff"/><path d="M60 50l25-27 35 40H35z" fill="#65b59c"/><path d="M-16 95h182l-14 18H0z" fill="#aab6c6"/></g>
+          <g transform="translate(590 355)"><rect width="145" height="95" rx="7" fill="#101b2c"/><rect x="8" y="8" width="129" height="72" rx="3" fill="#d9eefb"/><circle cx="42" cy="44" r="18" fill="#f04444"/><text x="42" y="49" text-anchor="middle" font-size="14" fill="#fff" font-weight="900">AD</text><line x1="29" y1="31" x2="55" y2="57" stroke="#fff" stroke-width="5"/><rect x="50" y="95" width="45" height="6" fill="#66758b"/></g>
+          <text x="255" y="525" text-anchor="middle" class="svg-label">Phone</text><text x="485" y="525" text-anchor="middle" class="svg-label">Laptop</text><text x="660" y="480" text-anchor="middle" class="svg-label">Smart TV / IoT</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="section-heading">
+        <p class="eyebrow" data-i18n="howEyebrow">TWO DEPLOYMENT MODES</p>
+        <h2 data-i18n="howTitle">Use it with the network you already have</h2>
+        <p data-i18n="howLead">Start as a DNS sinkhole, or create a separate protected Wi‑Fi subnet when your ISP router does not allow custom DNS settings.</p>
+      </div>
+      <div class="mode-grid">
+        <article class="mode-card blue-card">
+          <div class="mode-icon">⚙️</div>
+          <h3 data-i18n="mode1Title">Mode 1 — Router DHCP</h3>
+          <ul>
+            <li data-i18n="mode1a">The router keeps DHCP and gateway duties</li>
+            <li data-i18n="mode1b">ESP32 acts as the filtered DNS server</li>
+            <li data-i18n="mode1c">Best when the router lets you set custom DNS</li>
+          </ul>
+          <div class="mini-flow"><span>Internet</span><b>→</b><span>Router</span><b>→</b><span>ESP32 DNS</span><b>→</b><span>Devices</span></div>
+        </article>
+        <article class="mode-card green-card">
+          <div class="mode-icon">📶</div>
+          <h3 data-i18n="mode2Title">Mode 2 — ESP32 Gateway</h3>
+          <ul>
+            <li data-i18n="mode2a">ESP32 creates a separate protected Wi‑Fi network</li>
+            <li data-i18n="mode2b">It provides DHCP, DNS and IPv4 gateway/NAPT</li>
+            <li data-i18n="mode2c">Useful when an ISP router locks DNS settings</li>
+          </ul>
+          <div class="mini-flow"><span>Internet</span><b>→</b><span>ESP32</span><b>→</b><span>Protected Wi‑Fi</span><b>→</b><span>Devices</span></div>
+        </article>
+      </div>
+      <p class="notice" data-i18n="dhcpWarning">Important: Gateway mode uses a separate subnet behind the ESP32. Do not run two DHCP servers on the same LAN.</p>
+    </section>
+
+    <section class="section tinted" id="features">
+      <div class="section-heading">
+        <p class="eyebrow" data-i18n="featuresEyebrow">WHY USE IT</p>
+        <h2 data-i18n="featuresTitle">A small board with a practical network job</h2>
+      </div>
+      <div class="feature-grid">
+        <article><span>🛡️</span><h3 data-i18n="fPrivacy">More privacy</h3><p data-i18n="fPrivacyD">Blocks many tracker and advertising domains before they reach devices.</p></article>
+        <article><span>🚫</span><h3 data-i18n="fAds">Fewer ads</h3><p data-i18n="fAdsD">DNS filtering reduces many third-party ad requests across supported apps and sites.</p></article>
+        <article><span>💸</span><h3 data-i18n="fCost">Low cost</h3><p data-i18n="fCostD">Runs on an ESP32-S3 instead of requiring a full mini PC.</p></article>
+        <article><span>🏠</span><h3 data-i18n="fFamily">Family & IoT</h3><p data-i18n="fFamilyD">Create a dedicated filtered network for tablets, TVs and IoT devices.</p></article>
+        <article><span>🔁</span><h3 data-i18n="fRecovery">Uplink recovery</h3><p data-i18n="fRecoveryD">Gateway mode restores its default route and NAPT after upstream Wi‑Fi returns.</p></article>
+        <article><span>⌘</span><h3 data-i18n="fOpen">Open source</h3><p data-i18n="fOpenD">Transparent source code, documentation and roadmap under AGPL-3.0.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><p class="eyebrow" data-i18n="useEyebrow">REAL-WORLD USE CASES</p><h2 data-i18n="useTitle">Where this technique is useful</h2></div>
+      <div class="use-grid">
+        <article><div class="use-art router-art">📡</div><h3 data-i18n="uIsp">ISP router</h3><p data-i18n="uIspD">Create a protected subnet when the provider firmware prevents custom DNS configuration.</p></article>
+        <article><div class="use-art family-art">👨‍👩‍👧‍👦</div><h3 data-i18n="uKids">Family devices</h3><p data-i18n="uKidsD">Put selected tablets and phones on a separate filtered Wi‑Fi network.</p></article>
+        <article><div class="use-art tv-art">📺</div><h3 data-i18n="uTv">Smart TV & IoT</h3><p data-i18n="uTvD">Reduce common advertising and telemetry domains on devices with limited network controls.</p></article>
+        <article><div class="use-art travel-art">🧳</div><h3 data-i18n="uTravel">Travel & lab</h3><p data-i18n="uTravelD">Carry a compact DNS/gateway test platform for temporary networks and experiments.</p></article>
+      </div>
+    </section>
+
+    <section class="section install-section" id="install">
+      <div class="section-heading"><p class="eyebrow" data-i18n="installEyebrow">GET STARTED</p><h2 data-i18n="installTitle">What you need</h2></div>
+      <div class="requirements">
+        <div><b>1</b><span><strong>ESP32‑S3</strong><small data-i18n="reqBoard">N16R8 is the currently validated configuration</small></span></div>
+        <div><b>2</b><span><strong>USB</strong><small data-i18n="reqUsb">Cable for programming and power</small></span></div>
+        <div><b>3</b><span><strong>Wi‑Fi</strong><small data-i18n="reqWifi">Existing upstream network</small></span></div>
+        <div><b>4</b><span><strong data-i18n="reqComputerTitle">Computer</strong><small data-i18n="reqComputer">macOS, Windows or Linux for installation</small></span></div>
+      </div>
+      <div class="install-actions">
+        <a class="btn btn-primary" href="https://github.com/abraaobat/ESP32_AdBlocker/releases" data-i18n="viewReleases">View GitHub Releases</a>
+        <a class="btn btn-ghost" href="https://github.com/abraaobat/ESP32_AdBlocker#readme" data-i18n="readGuide">Read installation guide</a>
+        <a class="btn btn-ghost" href="https://github.com/abraaobat/ESP32_AdBlocker" data-i18n="viewSource">View source code</a>
+      </div>
+    </section>
+
+    <section class="section support" id="support">
+      <div>
+        <p class="eyebrow" data-i18n="supportEyebrow">KEEP THE PROJECT MOVING</p>
+        <h2 data-i18n="supportTitle">Support the project with US$1</h2>
+        <p data-i18n="supportLead">A small optional contribution helps maintain firmware, documentation, hardware tests and future features. The software remains open source.</p>
+      </div>
+      <div class="support-actions">
+        <a class="btn btn-primary" href="https://github.com/sponsors/abraaobat?metadata_campaign=esp32-adblock-gateway" rel="noopener" data-i18n="contributeOne">Contribute US$1</a>
+        <a class="btn btn-ghost" href="https://github.com/sponsors/abraaobat?metadata_campaign=esp32-adblock-gateway" rel="noopener" data-i18n="contributeOther">Choose another amount</a>
+        <small data-i18n="supportSetup">GitHub Sponsors must be enabled on the maintainer account for payment buttons to work.</small>
+      </div>
+    </section>
+
+    <section class="section caveats">
+      <div class="section-heading"><p class="eyebrow" data-i18n="limitsEyebrow">CLEAR EXPECTATIONS</p><h2 data-i18n="limitsTitle">What DNS blocking does — and does not — do</h2></div>
+      <div class="caveat-grid">
+        <p data-i18n="limit1"><strong>Not 100% ad blocking.</strong> DNS filtering cannot reliably block ads served from the same domain as desired content.</p>
+        <p data-i18n="limit2"><strong>Encrypted DNS can bypass it.</strong> Apps using their own DoH/DoT resolvers may not use the local DNS server.</p>
+        <p data-i18n="limit3"><strong>IPv6 strategy is still being developed.</strong> Current validated gateway behavior is focused on IPv4.</p>
+        <p data-i18n="limit4"><strong>Not a professional firewall replacement.</strong> It is a lightweight DNS and policy gateway for appropriate home/lab scenarios.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="brand"><span class="brand-mark">⌁</span><span><strong>ESP32</strong> <b>AdBlock</b> Gateway</span></div>
+    <p data-i18n="footerText">Open-source derivative project based on s60sc/ESP32_AdBlocker v3.4. AGPL-3.0.</p>
+    <div class="footer-links"><a href="https://github.com/abraaobat/ESP32_AdBlocker">GitHub</a><a href="https://github.com/s60sc/ESP32_AdBlocker">Upstream</a><a href="https://github.com/abraaobat/ESP32_AdBlocker/blob/main/LICENSE">License</a></div>
+  </footer>
+  <script src="./app.js" defer></script>
+</body>
+</html>
