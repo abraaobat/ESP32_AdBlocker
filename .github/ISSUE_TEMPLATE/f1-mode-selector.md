@@ -1,7 +1,7 @@
 ---
 name: F1 Mode Selector
 about: Track setup wizard and Router DNS / ESP32 Gateway mode selection
- title: "F1.x — Mode Selector: "
+title: "F1.x — Mode Selector: "
 labels: ""
 assignees: ""
 ---
