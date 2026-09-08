@@ -3,6 +3,7 @@
 
 #include "appGlobals.h"
 #include "deviceApi.h"
+#include "deviceNames.h"
 #include "deviceRegistry.h"
 
 bool checkAuth(httpd_req_t* req);
@@ -24,6 +25,32 @@ String ipToString(uint32_t ipv4) {
   return ipv4 == 0 ? String("") : IPAddress(ipv4).toString();
 }
 
+String jsonEscape(const char* value) {
+  String out;
+  if (value == nullptr) return out;
+  while (*value) {
+    const char c = *value++;
+    switch (c) {
+      case '\\': out += "\\\\"; break;
+      case '"': out += "\\\""; break;
+      case '\b': out += "\\b"; break;
+      case '\f': out += "\\f"; break;
+      case '\n': out += "\\n"; break;
+      case '\r': out += "\\r"; break;
+      case '\t': out += "\\t"; break;
+      default:
+        if (static_cast<uint8_t>(c) < 0x20) {
+          char escaped[7];
+          snprintf(escaped, sizeof(escaped), "\\u%04x", static_cast<uint8_t>(c));
+          out += escaped;
+        } else {
+          out += c;
+        }
+    }
+  }
+  return out;
+}
+
 }  // namespace
 
 esp_err_t deviceApiHandler(httpd_req_t* req) {
@@ -36,7 +63,7 @@ esp_err_t deviceApiHandler(httpd_req_t* req) {
   const size_t copied = deviceRegistryCopy(entries, MAX_ENTRIES);
 
   String payload;
-  payload.reserve(256 + copied * 160);
+  payload.reserve(320 + copied * 210);
   payload += "{\"online\":";
   payload += String(deviceRegistryOnlineCount());
   payload += ",\"known\":";
@@ -49,8 +76,13 @@ esp_err_t deviceApiHandler(httpd_req_t* req) {
     }
 
     const DeviceRegistryEntry& entry = entries[i];
+    char friendlyName[DEVICE_NAME_MAX_LEN + 1] = {0};
+    deviceNameGet(entry.mac, friendlyName, sizeof(friendlyName));
+
     payload += "{\"mac\":\"";
     payload += macToString(entry.mac);
+    payload += "\",\"name\":\"";
+    payload += jsonEscape(friendlyName);
     payload += "\",\"ipv4\":\"";
     payload += ipToString(entry.ipv4);
     payload += "\",\"online\":";
