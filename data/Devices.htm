@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ESP32 AdBlock Gateway — Devices</title>
+  <style>
+    :root {
+      --bg:#f5f7fb;
+      --card:#fff;
+      --text:#18212f;
+      --muted:#687386;
+      --line:#d9e0ea;
+      --ok:#16794b;
+      --off:#7a8799;
+      --accent:#0b68ff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header a{text-decoration:none;color:var(--accent);font-weight:700}
+    main{max-width:980px;margin:0 auto;padding:18px}
+    h1{margin:0 0 6px;font-size:1.7rem}
+    .lead{color:var(--muted);margin:0 0 18px}
+    .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .metric,.device{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .metric small{display:block;color:var(--muted);margin-bottom:4px}.metric strong{font-size:1.5rem}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+    button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+    #status{font-size:.9rem;color:var(--muted)}
+    .devices{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+    .device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .badge{font-size:.78rem;font-weight:800;padding:5px 9px;border-radius:999px;background:#e8edf3;color:var(--off)}
+    .badge.online{background:#e6f5ed;color:var(--ok)}
+    dl{display:grid;grid-template-columns:110px 1fr;gap:7px 10px;margin:0}
+    dt{color:var(--muted)}dd{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+    .empty,.error{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;color:var(--muted)}
+    .error{color:#9f2d2d;border-color:#e8bcbc;background:#fff7f7}
+    @media(max-width:600px){.summary{grid-template-columns:1fr}.device{padding:14px}dl{grid-template-columns:92px 1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <strong>ESP32 AdBlock Gateway</strong>
+    <a href="/">← Back to dashboard</a>
+  </header>
+  <main>
+    <h1>Devices</h1>
+    <p class="lead">Live view of devices known by the protected Wi-Fi Device Registry.</p>
+
+    <section class="summary">
+      <div class="metric"><small>Online now</small><strong id="onlineCount">—</strong></div>
+      <div class="metric"><small>Known devices</small><strong id="knownCount">—</strong></div>
+      <div class="metric"><small>Refresh</small><strong>5s</strong></div>
+    </section>
+
+    <div class="toolbar">
+      <span id="status">Loading…</span>
+      <button id="refreshBtn" type="button">Refresh now</button>
+    </div>
+
+    <section id="devices" class="devices"></section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const onlineCount = document.getElementById('onlineCount');
+    const knownCount = document.getElementById('knownCount');
+    const devicesEl = document.getElementById('devices');
+    const statusEl = document.getElementById('status');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function elapsed(ms) {
+      if (!Number.isFinite(ms)) return '—';
+      if (ms < 1000) return `${ms} ms`;
+      const sec = Math.floor(ms / 1000);
+      if (sec < 60) return `${sec}s`;
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `${min}m ${sec % 60}s`;
+      const hr = Math.floor(min / 60);
+      return `${hr}h ${min % 60}m`;
+    }
+
+    function deviceCard(d) {
+      const article = document.createElement('article');
+      article.className = 'device';
+
+      const head = document.createElement('div');
+      head.className = 'device-head';
+      const title = document.createElement('strong');
+      title.textContent = d.ipv4 || d.mac || 'Unknown device';
+      const badge = document.createElement('span');
+      badge.className = `badge${d.online ? ' online' : ''}`;
+      badge.textContent = d.online ? 'ONLINE' : 'OFFLINE';
+      head.append(title, badge);
+
+      const dl = document.createElement('dl');
+      const rows = [
+        ['MAC', d.mac || '—'],
+        ['IPv4', d.ipv4 || 'pending'],
+        ['Connections', String(d.connectCount ?? 0)],
+        ['First seen', elapsed(d.firstSeenMs)],
+        ['Last seen', elapsed(d.lastSeenMs)]
+      ];
+
+      rows.forEach(([k,v]) => {
+        const dt = document.createElement('dt');
+        const dd = document.createElement('dd');
+        dt.textContent = k;
+        dd.textContent = v;
+        dl.append(dt, dd);
+      });
+
+      article.append(head, dl);
+      return article;
+    }
+
+    async function loadDevices() {
+      statusEl.textContent = 'Refreshing…';
+      try {
+        const res = await fetch('/api/devices', {cache:'no-store'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        onlineCount.textContent = data.online ?? 0;
+        knownCount.textContent = data.known ?? 0;
+        devicesEl.replaceChildren();
+
+        const list = Array.isArray(data.devices) ? data.devices : [];
+        list.sort((a,b) => Number(b.online) - Number(a.online) || String(a.ipv4).localeCompare(String(b.ipv4)));
+
+        if (!list.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'No devices are known yet. Connect a client to the protected Wi-Fi network.';
+          devicesEl.appendChild(empty);
+        } else {
+          list.forEach(d => devicesEl.appendChild(deviceCard(d)));
+        }
+
+        statusEl.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        const error = document.createElement('div');
+        error.className = 'error';
+        error.textContent = `Could not load /api/devices: ${err.message}`;
+        devicesEl.replaceChildren(error);
+        statusEl.textContent = 'Update failed';
+      }
+    }
+
+    refreshBtn.addEventListener('click', loadDevices);
+    loadDevices();
+    setInterval(loadDevices, 5000);
+  </script>
+</body>
+</html>
