@@ -1,15 +1,9 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "appGlobals.h"
-#include "natSecrets.h"
+#include "natConfig.h"
 
 namespace {
-
-const char* PROTECTED_AP_SSID = "AMB-AdBlock";
-
-// TROQUE esta senha antes do upload.
-// Mínimo 8 caracteres.
-
 
 IPAddress protectedIP(192, 168, 4, 1);
 IPAddress protectedMask(255, 255, 255, 0);
@@ -18,12 +12,38 @@ IPAddress protectedDNS(192, 168, 4, 1);
 
 bool protectedNatAPEnabled = false;
 
+bool protectedAPConfigReady() {
+  if (!PROTECTED_AP_HAS_LOCAL_SECRETS) {
+    Serial.println("[NAT-AP] Disabled: copy natSecrets.example.h to natSecrets.h and set a password");
+    return false;
+  }
+
+  const size_t ssidLen = strlen(PROTECTED_AP_SSID);
+  const size_t passLen = strlen(PROTECTED_AP_PASS);
+
+  if (ssidLen == 0 || ssidLen > 32) {
+    Serial.println("[NAT-AP] ERROR: protected AP SSID must be 1..32 characters");
+    return false;
+  }
+
+  if (strcmp(PROTECTED_AP_PASS, "CHANGE_ME") == 0 || passLen < 8 || passLen > 63) {
+    Serial.println("[NAT-AP] ERROR: set a private 8..63 character password in natSecrets.h");
+    return false;
+  }
+
+  return true;
+}
+
 }
 
 bool startProtectedNatAP() {
 
   Serial.println();
   Serial.println("[NAT-AP] Starting protected Wi-Fi...");
+
+  if (!protectedAPConfigReady()) {
+    return false;
+  }
 
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[NAT-AP] ERROR: upstream STA is not connected");
@@ -92,7 +112,6 @@ bool startProtectedNatAP() {
 
   return true;
 }
-
 
 bool isProtectedNatAPEnabled() {
   return protectedNatAPEnabled;
