@@ -280,3 +280,35 @@ void deviceRegistryDump() {
     );
   }
 }
+
+size_t deviceRegistryCount() {
+  return knownCount();
+}
+
+size_t deviceRegistryOnlineCount() {
+  return onlineCount();
+}
+
+size_t deviceRegistryCopy(DeviceRegistryEntry* outEntries, size_t capacity) {
+  if (outEntries == nullptr || capacity == 0) {
+    return 0;
+  }
+
+  size_t copied = 0;
+  for (const auto& record : records) {
+    if (!record.used || copied >= capacity) {
+      continue;
+    }
+
+    DeviceRegistryEntry& entry = outEntries[copied++];
+    entry = DeviceRegistryEntry{};
+    entry.online = record.online;
+    memcpy(entry.mac, record.mac, sizeof(entry.mac));
+    entry.ipv4 = record.ipv4;
+    entry.firstSeenMs = record.firstSeenMs;
+    entry.lastSeenMs = record.lastSeenMs;
+    entry.connectCount = record.connectCount;
+  }
+
+  return copied;
+}
