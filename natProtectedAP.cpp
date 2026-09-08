@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include "appGlobals.h"
 #include "natConfig.h"
+#include "deviceRegistry.h"
 
 namespace {
 
@@ -109,6 +110,7 @@ bool startProtectedNatAP() {
   Serial.println("[NAT-AP] ==================================");
 
   protectedNatAPEnabled = true;
+  deviceRegistryBegin();
 
   return true;
 }
