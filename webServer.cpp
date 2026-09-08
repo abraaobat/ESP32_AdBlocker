@@ -3,8 +3,9 @@
 // s60sc 2022 - 2023
 
 #include "appGlobals.h"
+#include "deviceApi.h"
 
-#define MAX_HANDLERS 12
+#define MAX_HANDLERS 13
 
 char inFileName[IN_FILE_NAME_LEN];
 static char variable[FILE_NAME_LEN]; 
@@ -591,6 +592,7 @@ bool startWebServer() {
   httpd_uri_t controlUri = {.uri = "/control", .method = HTTP_GET, .handler = controlHandler, .user_ctx = NULL};
   httpd_uri_t updateUri = {.uri = "/update", .method = HTTP_POST, .handler = updateHandler, .user_ctx = NULL};
   httpd_uri_t statusUri = {.uri = "/status", .method = HTTP_GET, .handler = statusHandler, .user_ctx = NULL};
+  httpd_uri_t devicesUri = {.uri = "/api/devices", .method = HTTP_GET, .handler = deviceApiHandler, .user_ctx = NULL};
   httpd_uri_t uploadUri = {.uri = "/upload", .method = HTTP_POST, .handler = uploadHandler, .user_ctx = NULL};
   httpd_uri_t wifiUri = {.uri = "/wifi", .method = HTTP_GET, .handler = setupHandler, .user_ctx = NULL};
   httpd_uri_t sseUri = {.uri = "/sse", .method = HTTP_GET, .handler = sseHandler, .user_ctx = NULL};
@@ -604,6 +606,7 @@ bool startWebServer() {
     httpd_register_uri_handler(httpServer, &controlUri);
     httpd_register_uri_handler(httpServer, &updateUri);
     httpd_register_uri_handler(httpServer, &statusUri);
+    httpd_register_uri_handler(httpServer, &devicesUri);
     httpd_register_uri_handler(httpServer, &uploadUri);
     httpd_register_uri_handler(httpServer, &sseUri);
     httpd_register_uri_handler(httpServer, &wifiUri);
