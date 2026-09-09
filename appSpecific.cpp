@@ -6,6 +6,7 @@
 #include "appGlobals.h"
 #include "deviceNames.h"
 #include "deviceProfiles.h"
+#include "categoryIndex.h"
 
 const size_t prvtkey_len = 0;
 const size_t cacert_len = 0;
@@ -689,6 +690,26 @@ bool appSetup() {
   updateConfigVect("blockCnt", "0");
   updateConfigVect("allowCnt", "0");
   loadBlockList("Initial"); // best effort - DNS starts regardless
+
+  if (categoryIndexLoad()) {
+    const CategoryIndexStats stats = categoryIndexStats();
+    LOG_INF("F4.2 category index ready unique=%u source=%uB storage=%uB entries=%uB load=%ums",
+            (unsigned)stats.uniqueDomains,
+            (unsigned)stats.sourceBytes,
+            (unsigned)stats.storageBytes,
+            (unsigned)stats.entryBytes,
+            (unsigned)stats.loadMs);
+
+    LOG_INF("F4.2 lookup doubleclick.net mask=0x%04X",
+            (unsigned)categoryIndexLookup("doubleclick.net"));
+    LOG_INF("F4.2 lookup multi-category.example mask=0x%04X",
+            (unsigned)categoryIndexLookup("multi-category.example"));
+    LOG_INF("F4.2 lookup unknown.example mask=0x%04X",
+            (unsigned)categoryIndexLookup("unknown.example"));
+  } else {
+    LOG_WRN("F4.2 category index not loaded");
+  }
+
   prepDNS();
   appSetupDone = true;
   return true;
