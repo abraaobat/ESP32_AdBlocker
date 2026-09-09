@@ -5,6 +5,7 @@
 
 #include "appGlobals.h"
 #include "deviceNames.h"
+#include "deviceProfiles.h"
 
 const size_t prvtkey_len = 0;
 const size_t cacert_len = 0;
@@ -790,6 +791,9 @@ char* buildAppJsonString(bool filter) {
 esp_err_t appSpecificWebHandler(httpd_req_t *req, const char* variable, const char* value) {
   if (!strcmp(variable, "deviceName")) {
     return deviceNameSetFromControlValue(value) ? ESP_OK : ESP_FAIL;
+  }
+  if (!strcmp(variable, "deviceProfile")) {
+    return deviceProfileSetFromControlValue(value) ? ESP_OK : ESP_FAIL;
   }
   return ESP_FAIL;
 }
