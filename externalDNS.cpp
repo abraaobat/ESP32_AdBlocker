@@ -15,6 +15,7 @@
 
 #include "appGlobals.h"
 #include "dnsClientAttribution.h"
+#include "dnsProfilePolicy.h"
 #include <lwip/sockets.h>   // socket/sendto/recvfrom/setsockopt/close
 
 #define DNS_DEFAULT_PORT   53    // listening port (also reply source port)
@@ -91,7 +92,13 @@ static int processDNSquery(const uint8_t *rx, int len, uint8_t *tx, int txSize, 
   }
 
   IPAddress ansIP;
-  DnsResult r = checkBlocklist(domain, ansIP);
+  const DnsProfilePolicyDecision policy = resolveDnsForClientProfile(client, domain, ansIP);
+  DnsResult r = policy.result;
+  LOG_INF("DNS policy profile=%s reason=%s domain=%s result=%d",
+          client.profile,
+          dnsProfilePolicyReasonName(policy.reason),
+          domain,
+          (int)r);
   LOG_VRB("Q '%s' type=%u -> %d", domain, qtype, (int)r); 
 
   if (r == DNS_NXDOMAIN || r == DNS_SERVFAIL) {
