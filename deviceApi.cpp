@@ -4,6 +4,7 @@
 #include "appGlobals.h"
 #include "deviceApi.h"
 #include "deviceNames.h"
+#include "deviceProfiles.h"
 #include "deviceRegistry.h"
 
 bool checkAuth(httpd_req_t* req);
@@ -63,11 +64,12 @@ esp_err_t deviceApiHandler(httpd_req_t* req) {
   const size_t copied = deviceRegistryCopy(entries, MAX_ENTRIES);
 
   String payload;
-  payload.reserve(320 + copied * 210);
+  payload.reserve(360 + copied * 240);
   payload += "{\"online\":";
   payload += String(deviceRegistryOnlineCount());
   payload += ",\"known\":";
   payload += String(deviceRegistryCount());
+  payload += ",\"profiles\":[\"standard\",\"iot-strict\",\"unrestricted\"]";
   payload += ",\"devices\":[";
 
   for (size_t i = 0; i < copied; ++i) {
@@ -77,12 +79,16 @@ esp_err_t deviceApiHandler(httpd_req_t* req) {
 
     const DeviceRegistryEntry& entry = entries[i];
     char friendlyName[DEVICE_NAME_MAX_LEN + 1] = {0};
+    char profileId[DEVICE_PROFILE_ID_MAX_LEN + 1] = {0};
     deviceNameGet(entry.mac, friendlyName, sizeof(friendlyName));
+    deviceProfileGet(entry.mac, profileId, sizeof(profileId));
 
     payload += "{\"mac\":\"";
     payload += macToString(entry.mac);
     payload += "\",\"name\":\"";
     payload += jsonEscape(friendlyName);
+    payload += "\",\"profile\":\"";
+    payload += jsonEscape(profileId);
     payload += "\",\"ipv4\":\"";
     payload += ipToString(entry.ipv4);
     payload += "\",\"online\":";

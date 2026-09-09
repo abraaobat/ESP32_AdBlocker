@@ -37,13 +37,14 @@
     .badge.online{background:#e6f5ed;color:var(--ok)}
     dl{display:grid;grid-template-columns:110px 1fr;gap:7px 10px;margin:0}
     dt{color:var(--muted)}dd{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
-    .name-editor{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-    .name-editor input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:inherit;color:var(--text);background:#fff}
-    .name-editor input:focus{outline:2px solid rgba(11,104,255,.18);border-color:var(--accent)}
-    .name-editor button{padding:9px 12px}
+    .editor{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);align-items:center}
+    .editor input,.editor select{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:inherit;color:var(--text);background:#fff}
+    .editor input:focus,.editor select:focus{outline:2px solid rgba(11,104,255,.18);border-color:var(--accent)}
+    .editor button{padding:9px 12px;white-space:nowrap}
+    .profile-note{margin-top:8px;color:var(--muted);font-size:.82rem}
     .empty,.error{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;color:var(--muted)}
     .error{color:#9f2d2d;border-color:#e8bcbc;background:#fff7f7}
-    @media(max-width:600px){.summary{grid-template-columns:1fr}.device{padding:14px}dl{grid-template-columns:92px 1fr}.name-editor{flex-direction:column}}
+    @media(max-width:600px){.summary{grid-template-columns:1fr}.device{padding:14px}dl{grid-template-columns:92px 1fr}.editor{flex-direction:column;align-items:stretch}}
   </style>
 </head>
 <body>
@@ -53,7 +54,7 @@
   </header>
   <main>
     <h1>Devices</h1>
-    <p class="lead">Live view of devices known by the protected Wi-Fi Device Registry. Friendly names are stored by MAC on the ESP32.</p>
+    <p class="lead">Live view of devices known by the protected Wi-Fi Device Registry. Friendly names and profile assignments are stored by MAC on the ESP32.</p>
 
     <section class="summary">
       <div class="metric"><small>Online now</small><strong id="onlineCount">—</strong></div>
@@ -78,6 +79,9 @@
     const statusEl = document.getElementById('status');
     const refreshBtn = document.getElementById('refreshBtn');
 
+    const defaultProfiles = ['standard', 'iot-strict', 'unrestricted'];
+    let availableProfiles = [...defaultProfiles];
+
     function elapsed(ms) {
       if (!Number.isFinite(ms)) return '—';
       if (ms < 1000) return `${ms} ms`;
@@ -89,19 +93,43 @@
       return `${hr}h ${min % 60}m`;
     }
 
+    function profileLabel(id) {
+      if (id === 'iot-strict') return 'IoT Strict';
+      if (id === 'unrestricted') return 'Unrestricted';
+      return 'Standard';
+    }
+
+    async function saveControl(variable, value, savingLabel, doneLabel) {
+      statusEl.textContent = savingLabel;
+      const encoded = encodeURIComponent(value);
+      const res = await fetch(`/control?${variable}=${encoded}`, {cache:'no-store'});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      statusEl.textContent = doneLabel;
+      await loadDevices(true);
+    }
+
     async function saveName(mac, input, button) {
       const previous = button.textContent;
       button.disabled = true;
       button.textContent = 'Saving…';
-      statusEl.textContent = 'Saving friendly name…';
       try {
-        const value = encodeURIComponent(`${mac}|${input.value.trim()}`);
-        const res = await fetch(`/control?deviceName=${value}`, {cache:'no-store'});
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        statusEl.textContent = 'Friendly name saved';
-        await loadDevices(true);
+        await saveControl('deviceName', `${mac}|${input.value.trim()}`, 'Saving friendly name…', 'Friendly name saved');
       } catch (err) {
         statusEl.textContent = `Could not save name: ${err.message}`;
+      } finally {
+        button.disabled = false;
+        button.textContent = previous;
+      }
+    }
+
+    async function saveProfile(mac, select, button) {
+      const previous = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Saving…';
+      try {
+        await saveControl('deviceProfile', `${mac}|${select.value}`, 'Saving device profile…', 'Device profile saved');
+      } catch (err) {
+        statusEl.textContent = `Could not save profile: ${err.message}`;
       } finally {
         button.disabled = false;
         button.textContent = previous;
@@ -130,6 +158,7 @@
       const rows = [
         ['MAC', d.mac || '—'],
         ['IPv4', d.ipv4 || 'pending'],
+        ['Profile', profileLabel(d.profile || 'standard')],
         ['Connections', String(d.connectCount ?? 0)],
         ['First seen', elapsed(d.firstSeenMs)],
         ['Last seen', elapsed(d.lastSeenMs)]
@@ -143,29 +172,50 @@
         dl.append(dt, dd);
       });
 
-      const editor = document.createElement('div');
-      editor.className = 'name-editor';
+      const nameEditor = document.createElement('div');
+      nameEditor.className = 'editor name-editor';
       const input = document.createElement('input');
       input.type = 'text';
       input.maxLength = 32;
       input.placeholder = 'Friendly name';
       input.value = d.name || '';
       input.setAttribute('aria-label', `Friendly name for ${d.mac}`);
-      const save = document.createElement('button');
-      save.type = 'button';
-      save.textContent = 'Save name';
-      save.addEventListener('click', () => saveName(d.mac, input, save));
+      const saveNameButton = document.createElement('button');
+      saveNameButton.type = 'button';
+      saveNameButton.textContent = 'Save name';
+      saveNameButton.addEventListener('click', () => saveName(d.mac, input, saveNameButton));
       input.addEventListener('keydown', event => {
-        if (event.key === 'Enter') save.click();
+        if (event.key === 'Enter') saveNameButton.click();
       });
-      editor.append(input, save);
+      nameEditor.append(input, saveNameButton);
 
-      article.append(head, dl, editor);
+      const profileEditor = document.createElement('div');
+      profileEditor.className = 'editor profile-editor';
+      const select = document.createElement('select');
+      select.setAttribute('aria-label', `Profile for ${d.mac}`);
+      availableProfiles.forEach(id => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = profileLabel(id);
+        if ((d.profile || 'standard') === id) option.selected = true;
+        select.appendChild(option);
+      });
+      const saveProfileButton = document.createElement('button');
+      saveProfileButton.type = 'button';
+      saveProfileButton.textContent = 'Save profile';
+      saveProfileButton.addEventListener('click', () => saveProfile(d.mac, select, saveProfileButton));
+      profileEditor.append(select, saveProfileButton);
+
+      const note = document.createElement('div');
+      note.className = 'profile-note';
+      note.textContent = 'Profile assignment is stored now; per-device DNS enforcement is enabled only after F3 policy attribution is validated.';
+
+      article.append(head, dl, nameEditor, profileEditor, note);
       return article;
     }
 
     async function loadDevices(force = false) {
-      if (!force && document.activeElement && document.activeElement.matches('.name-editor input')) return;
+      if (!force && document.activeElement && document.activeElement.matches('.editor input,.editor select')) return;
       statusEl.textContent = 'Refreshing…';
       try {
         const res = await fetch('/api/devices', {cache:'no-store'});
@@ -175,6 +225,7 @@
         onlineCount.textContent = data.online ?? 0;
         knownCount.textContent = data.known ?? 0;
         devicesEl.replaceChildren();
+        if (Array.isArray(data.profiles) && data.profiles.length) availableProfiles = data.profiles;
 
         const list = Array.isArray(data.devices) ? data.devices : [];
         list.sort((a,b) => Number(b.online) - Number(a.online) || String(a.name || a.ipv4).localeCompare(String(b.name || b.ipv4)));
