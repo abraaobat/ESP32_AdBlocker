@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "appGlobals.h"
 #include "deviceProfiles.h"
 #include "deviceRegistry.h"
 #include "dnsClientAttribution.h"
