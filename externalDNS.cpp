@@ -14,6 +14,7 @@
 // s60sc 2026
 
 #include "appGlobals.h"
+#include "dnsClientAttribution.h"
 #include <lwip/sockets.h>   // socket/sendto/recvfrom/setsockopt/close
 
 #define DNS_DEFAULT_PORT   53    // listening port (also reply source port)
@@ -55,7 +56,7 @@ int parseDNSname(uint8_t *packet, int offset, char *out, int outSize, int pktLen
 /* Core decision engine. Copies header+question into tx, then appends either
  * an A/AAAA answer (blocked/resolved) or nothing (NXDOMAIN/SERVFAIL, RCODE set).
  * Returns reply length, or 0 to drop silently (malformed query). */
-static int processDNSquery(const uint8_t *rx, int len, uint8_t *tx, int txSize) {
+static int processDNSquery(const uint8_t *rx, int len, uint8_t *tx, int txSize, uint32_t sourceIpv4) {
   int offset = sizeof(dns_header_t);
   if (len < offset + 5) return 0;             // need header + minimal question
   char domain[MAX_HOSTNAME];
@@ -77,6 +78,18 @@ static int processDNSquery(const uint8_t *rx, int len, uint8_t *tx, int txSize) 
    *   RESOLVED -> forward upstream address (A); AAAA -> NODATA (IPv4 device)
    *   NXDOMAIN -> RCODE 3, zero answers (honest "does not exist")
    *   SERVFAIL -> RCODE 2, zero answers (upstream sick - NEVER cached) */
+  const DnsClientContext client = dnsClientAttributionResolve(sourceIpv4);
+  if (client.attributed) {
+    LOG_INF("DNS client IP=%s MAC=%02X:%02X:%02X:%02X:%02X:%02X profile=%s domain=%s",
+            IPAddress(client.ipv4).toString().c_str(),
+            client.mac[0], client.mac[1], client.mac[2],
+            client.mac[3], client.mac[4], client.mac[5],
+            client.profile, domain);
+  } else {
+    LOG_INF("DNS client IP=%s unattributed profile=%s domain=%s",
+            IPAddress(client.ipv4).toString().c_str(), client.profile, domain);
+  }
+
   IPAddress ansIP;
   DnsResult r = checkBlocklist(domain, ansIP);
   LOG_VRB("Q '%s' type=%u -> %d", domain, qtype, (int)r); 
@@ -170,7 +183,7 @@ static void dnsTask(void *parameter) {
     clilen = sizeof(cli);
     int len = recvfrom(dnsSock, rxbuf, sizeof(rxbuf), 0, (struct sockaddr *)&cli, &clilen);
     if (len < (int)sizeof(dns_header_t)) continue;
-    int txLen = processDNSquery(rxbuf, len, txbuf, sizeof(txbuf));
+    int txLen = processDNSquery(rxbuf, len, txbuf, sizeof(txbuf), cli.sin_addr.s_addr);
     LOG_VRB("DNS q=%dB r=%dB", len, txLen > 0 ? txLen : 0);   // If you want to Diable DNS Result Log Disable this Line
     if (txLen > 0) sendto(dnsSock, txbuf, txLen, 0, (struct sockaddr *)&cli, clilen);
   }

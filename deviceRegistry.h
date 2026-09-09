@@ -17,3 +17,4 @@ void deviceRegistryDump();
 size_t deviceRegistryCount();
 size_t deviceRegistryOnlineCount();
 size_t deviceRegistryCopy(DeviceRegistryEntry* outEntries, size_t capacity);
+bool deviceRegistryFindOnlineByIPv4(uint32_t ipv4, DeviceRegistryEntry* outEntry);
