@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "projectId": "esp32-adblocker",
+  "updatedAt": "2026-09-08T22:45:00-04:00",
+  "status": "Operacional / validação",
+  "statusClass": "ops",
+  "progress": 78,
+  "roadmap": "ESP32_AdBlocker 3.4 fork + Gateway",
+  "current": "DNS sinkhole e modo opcional de gateway SoftAP/DHCP/DNS/NAPT estão implementados; ESP32-S3 N16R8 e recuperação após queda do uplink foram validados em hardware real.",
+  "architecture": "Router DHCP ou ESP32 Gateway → DNS sinkhole → blocklists; modo gateway usa SoftAP + DHCP + IPv4 gateway + NAPT",
+  "next": "Validar estabilidade contínua, comportamento de boot sem uplink, bypass por IPv6/DoH e evolução do gerenciamento de blocklists.",
+  "action": "Executar teste prolongado de estabilidade e documentar cenários de recuperação e limitações de rede.",
+  "subprojects": [
+    "DNS sinkhole",
+    "Router DHCP mode",
+    "Protected SoftAP gateway",
+    "DHCP/NAPT",
+    "Uplink recovery",
+    "Blocklists",
+    "IPv6/DoH validation"
+  ],
+  "activity": {
+    "date": "2026-09-08",
+    "type": "validation",
+    "text": "ESP32 AdBlocker publishes its machine-readable status; DNS/gateway operation and uplink recovery are validated, while long-term stability remains the next gate."
+  }
+}
