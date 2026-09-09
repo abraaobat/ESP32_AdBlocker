@@ -27,16 +27,23 @@
     .metric small{display:block;color:var(--muted);margin-bottom:4px}.metric strong{font-size:1.5rem}
     .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
     button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.55;cursor:default}
     #status{font-size:.9rem;color:var(--muted)}
     .devices{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
     .device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .device-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .device-title strong{overflow-wrap:anywhere}.device-title small{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     .badge{font-size:.78rem;font-weight:800;padding:5px 9px;border-radius:999px;background:#e8edf3;color:var(--off)}
     .badge.online{background:#e6f5ed;color:var(--ok)}
     dl{display:grid;grid-template-columns:110px 1fr;gap:7px 10px;margin:0}
     dt{color:var(--muted)}dd{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+    .name-editor{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+    .name-editor input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:inherit;color:var(--text);background:#fff}
+    .name-editor input:focus{outline:2px solid rgba(11,104,255,.18);border-color:var(--accent)}
+    .name-editor button{padding:9px 12px}
     .empty,.error{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;color:var(--muted)}
     .error{color:#9f2d2d;border-color:#e8bcbc;background:#fff7f7}
-    @media(max-width:600px){.summary{grid-template-columns:1fr}.device{padding:14px}dl{grid-template-columns:92px 1fr}}
+    @media(max-width:600px){.summary{grid-template-columns:1fr}.device{padding:14px}dl{grid-template-columns:92px 1fr}.name-editor{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -46,7 +53,7 @@
   </header>
   <main>
     <h1>Devices</h1>
-    <p class="lead">Live view of devices known by the protected Wi-Fi Device Registry.</p>
+    <p class="lead">Live view of devices known by the protected Wi-Fi Device Registry. Friendly names are stored by MAC on the ESP32.</p>
 
     <section class="summary">
       <div class="metric"><small>Online now</small><strong id="onlineCount">—</strong></div>
@@ -82,18 +89,42 @@
       return `${hr}h ${min % 60}m`;
     }
 
+    async function saveName(mac, input, button) {
+      const previous = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Saving…';
+      statusEl.textContent = 'Saving friendly name…';
+      try {
+        const value = encodeURIComponent(`${mac}|${input.value.trim()}`);
+        const res = await fetch(`/control?deviceName=${value}`, {cache:'no-store'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        statusEl.textContent = 'Friendly name saved';
+        await loadDevices(true);
+      } catch (err) {
+        statusEl.textContent = `Could not save name: ${err.message}`;
+      } finally {
+        button.disabled = false;
+        button.textContent = previous;
+      }
+    }
+
     function deviceCard(d) {
       const article = document.createElement('article');
       article.className = 'device';
 
       const head = document.createElement('div');
       head.className = 'device-head';
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'device-title';
       const title = document.createElement('strong');
-      title.textContent = d.ipv4 || d.mac || 'Unknown device';
+      title.textContent = d.name || d.ipv4 || d.mac || 'Unknown device';
+      const subtitle = document.createElement('small');
+      subtitle.textContent = d.name ? (d.ipv4 || d.mac || '') : '';
+      titleWrap.append(title, subtitle);
       const badge = document.createElement('span');
       badge.className = `badge${d.online ? ' online' : ''}`;
       badge.textContent = d.online ? 'ONLINE' : 'OFFLINE';
-      head.append(title, badge);
+      head.append(titleWrap, badge);
 
       const dl = document.createElement('dl');
       const rows = [
@@ -112,11 +143,29 @@
         dl.append(dt, dd);
       });
 
-      article.append(head, dl);
+      const editor = document.createElement('div');
+      editor.className = 'name-editor';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 32;
+      input.placeholder = 'Friendly name';
+      input.value = d.name || '';
+      input.setAttribute('aria-label', `Friendly name for ${d.mac}`);
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.textContent = 'Save name';
+      save.addEventListener('click', () => saveName(d.mac, input, save));
+      input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') save.click();
+      });
+      editor.append(input, save);
+
+      article.append(head, dl, editor);
       return article;
     }
 
-    async function loadDevices() {
+    async function loadDevices(force = false) {
+      if (!force && document.activeElement && document.activeElement.matches('.name-editor input')) return;
       statusEl.textContent = 'Refreshing…';
       try {
         const res = await fetch('/api/devices', {cache:'no-store'});
@@ -128,7 +177,7 @@
         devicesEl.replaceChildren();
 
         const list = Array.isArray(data.devices) ? data.devices : [];
-        list.sort((a,b) => Number(b.online) - Number(a.online) || String(a.ipv4).localeCompare(String(b.ipv4)));
+        list.sort((a,b) => Number(b.online) - Number(a.online) || String(a.name || a.ipv4).localeCompare(String(b.name || b.ipv4)));
 
         if (!list.length) {
           const empty = document.createElement('div');
@@ -149,8 +198,8 @@
       }
     }
 
-    refreshBtn.addEventListener('click', loadDevices);
-    loadDevices();
+    refreshBtn.addEventListener('click', () => loadDevices(true));
+    loadDevices(true);
     setInterval(loadDevices, 5000);
   </script>
 </body>
