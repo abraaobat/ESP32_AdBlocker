@@ -4,6 +4,12 @@ This roadmap defines the path for this fork to evolve from a DNS sinkhole with a
 
 The project remains derived from [`s60sc/ESP32_AdBlocker`](https://github.com/s60sc/ESP32_AdBlocker) and keeps the upstream DNS sinkhole as its foundation. The fork's independent direction is centered on two deployment modes, client awareness, per-device policies, observability, appliance-like setup and a portable **Travel Security** use case for untrusted/public Wi-Fi.
 
+## Current execution state — 2026-09-10
+
+The DNS/gateway baseline remains operational on ESP32-S3 N16R8. A parallel **F4.2 categorized-list/index spike** is open as draft work: category-source validation is green, but the newly added Arduino-ESP32 3.3.11 compile gate currently fails during firmware compilation. That failure is a blocking engineering signal, not a completed feature. The next action is to diagnose/fix the compile gate, keep F4.2 draft until software CI is green, and preserve hardware/PSRAM/boot/NAPT/DNS validation as separate physical gates.
+
+The primary product sequence remains F1/F2 before full Policy Engine promotion. F4.2 is treated as a bounded technical spike that may inform the later F4 implementation without bypassing Device Registry prerequisites.
+
 ## Product direction
 
 **ESP32 AdBlock Gateway** should support two first-class network modes:
@@ -186,6 +192,20 @@ Deliverables:
 - allowlist/blocklist overrides
 - reason code for every block decision
 - memory/latency benchmarks on N16R8
+
+### F4.2 — Categorized-list/index spike 🟡
+
+Current bounded spike status:
+
+- [x] category-source/index representation added in draft work
+- [x] automatic validator checks domains, allowed categories, limits and duplicate merging
+- [x] category/index validation gate is green
+- [x] firmware compile gate added for ESP32-S3 N16R8 using Arduino-ESP32 3.3.11
+- [ ] diagnose and fix current firmware compile failure
+- [ ] compile gate green
+- [ ] PSRAM/runtime behavior validated on physical N16R8
+- [ ] boot + DNS + NAPT regression checked on physical hardware
+- [ ] merge only after applicable software gates are green; physical validation remains explicitly tracked
 
 **Exit criteria:** every block decision can report `device + profile + category + rule/reason`.
 
@@ -421,9 +441,12 @@ v1.0  Stable appliance-oriented release
 
 # Immediate next sprint
 
-The next development sprint is **F2 Device Registry**, preceded only by the minimum F1 configuration abstractions needed to avoid hard-coding new behavior.
+Two tracks are active, with a strict dependency boundary:
 
-Recommended implementation order:
+1. **F4.2 technical spike:** fix the failing ESP32-S3/Arduino-ESP32 3.3.11 compile gate, then keep the draft isolated until software CI is green. Do not claim PSRAM/runtime validation from CI alone.
+2. **Primary product sequence:** continue F2 Device Registry, preceded only by the minimum F1 configuration abstractions needed to avoid hard-coding new behavior.
+
+Recommended F2 implementation order:
 
 ```text
 F2.1 Connected-client enumeration
