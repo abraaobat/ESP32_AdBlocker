@@ -1,27 +1,30 @@
 {
   "schemaVersion": 1,
   "projectId": "esp32-adblocker",
-  "updatedAt": "2026-09-08T22:45:00-04:00",
-  "status": "Operacional / validação",
-  "statusClass": "ops",
-  "progress": 78,
+  "updatedAt": "2026-09-10T20:24:00-04:00",
+  "status": "Operacional / F4.2 em validação",
+  "statusClass": "validate",
+  "progress": 79,
   "roadmap": "ESP32_AdBlocker 3.4 fork + Gateway",
-  "current": "DNS sinkhole e modo opcional de gateway SoftAP/DHCP/DNS/NAPT estão implementados; ESP32-S3 N16R8 e recuperação após queda do uplink foram validados em hardware real.",
-  "architecture": "Router DHCP ou ESP32 Gateway → DNS sinkhole → blocklists; modo gateway usa SoftAP + DHCP + IPv4 gateway + NAPT",
-  "next": "Validar estabilidade contínua, comportamento de boot sem uplink, bypass por IPv6/DoH e evolução do gerenciamento de blocklists.",
-  "action": "Executar teste prolongado de estabilidade e documentar cenários de recuperação e limitações de rede.",
+  "current": "DNS sinkhole e modo opcional de gateway SoftAP/DHCP/DNS/NAPT seguem operacionais no ESP32-S3 N16R8. O spike F4.2 de categorias possui validação automática verde, mas o novo compile gate Arduino-ESP32 3.3.11 falhou durante a compilação do firmware e permanece bloqueador antes do merge.",
+  "architecture": "Router DHCP ou ESP32 Gateway → DNS sinkhole → blocklists; evolução: Device Registry → Profiles → Policy Engine categorizado",
+  "next": "Diagnosticar e corrigir o compile gate da PR F4.2, manter o spike draft até CI verde e depois retomar a sequência principal F1/F2 sem confundir compilação com validação física.",
+  "action": "Corrigir a falha de compilação ESP32-S3 N16R8 e, em seguida, validar PSRAM/boot/DNS/NAPT no hardware antes de promover F4.2.",
   "subprojects": [
-    "DNS sinkhole",
+    "DNS sinkhole ✓",
     "Router DHCP mode",
-    "Protected SoftAP gateway",
-    "DHCP/NAPT",
-    "Uplink recovery",
-    "Blocklists",
+    "Protected SoftAP gateway ✓",
+    "DHCP/NAPT ✓",
+    "Uplink recovery ✓",
+    "F4.2 categorized lists/index — draft",
+    "Category validation CI ✓",
+    "Firmware compile CI — failing",
+    "Device Registry F2",
     "IPv6/DoH validation"
   ],
   "activity": {
-    "date": "2026-09-08",
-    "type": "validation",
-    "text": "ESP32 AdBlocker publishes its machine-readable status; DNS/gateway operation and uplink recovery are validated, while long-term stability remains the next gate."
+    "date": "2026-09-10",
+    "type": "ci-gate",
+    "text": "F4.2 gained category-source validation and an ESP32-S3 N16R8 compile gate; category validation is green, while firmware compilation currently fails and remains the next blocking software gate."
   }
 }
