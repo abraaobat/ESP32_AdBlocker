@@ -1,0 +1,48 @@
+name: Firmware compile
+
+on:
+  pull_request:
+    paths:
+      - "**/*.ino"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/*.c"
+      - "**/*.cpp"
+      - ".github/workflows/firmware-compile.yml"
+  push:
+    paths:
+      - "**/*.ino"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/*.c"
+      - "**/*.cpp"
+      - ".github/workflows/firmware-compile.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  esp32-s3-n16r8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Install pinned Arduino-ESP32 core
+        shell: bash
+        run: |
+          set -euo pipefail
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls \
+            https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.11
+
+      - name: Compile ESP32-S3 16 MB flash / 8 MB OPI PSRAM profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          arduino-cli compile \
+            --fqbn 'esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi' \
+            --warnings all \
+            .

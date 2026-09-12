@@ -1,0 +1,12 @@
+# F4.2 validation fixture only.
+# Format: domain|category[,category...]
+# This is not a production threat-intelligence feed.
+
+doubleclick.net|ads,trackers
+google-analytics.com|analytics,trackers
+googletagmanager.com|analytics,trackers
+telemetry.example|telemetry
+malware-test.example|malware
+phishing-test.example|phishing
+multi-category.example|ads,analytics,telemetry
+multi-category.example|trackers
